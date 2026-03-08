@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Where Are We Going? — Group Travel Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0e0d;
+    --paper: #f5f0e8;
+    --cream: #ede7d9;
+    --gold: #c9a84c;
+    --gold-light: #e8d5a3;
+    --rust: #b5462b;
+    --teal: #2a6b6e;
+    --teal-light: #3d9a9f;
+    --muted: #7a7267;
+    --border: #d4cabb;
+    --purple: #5a3e7a;
+    --purple-light: #8b6dab;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--ink);
+    color: var(--paper);
+    min-height: 100vh;
+  }
+
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ══ HOME ══ */
+  #screen-home {
+    background: var(--ink);
+    position: relative;
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 24px;
+  }
+
+  .globe-bg {
+    position: absolute;
+    width: 700px; height: 700px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.12);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .globe-bg::before {
+    content: '';
+    position: absolute;
+    inset: 60px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.08);
+  }
+  .globe-bg::after {
+    content: '';
+    position: absolute;
+    inset: 130px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.05);
+  }
+
+  .home-content { position: relative; z-index: 2; max-width: 580px; }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(38px, 7vw, 66px);
+    line-height: 1.05;
+    color: var(--paper);
+    margin-bottom: 8px;
+  }
+  h1 em { color: var(--gold); font-style: italic; }
+
+  .subtitle {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.65;
+    margin: 20px 0 12px;
+    font-weight: 300;
+  }
+
+  .survey-overview {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin: 20px 0 36px;
+    flex-wrap: wrap;
+  }
+  .overview-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 24px;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: var(--gold-light);
+  }
+  .overview-pill .pill-icon { font-size: 16px; }
+
+  .setup-form { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 380px; margin: 0 auto; }
+
+  .field-group { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+  .field-group label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); font-weight: 500; }
+  .field-group input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--paper);
+    padding: 12px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field-group input:focus { border-color: var(--gold); }
+  .field-group input::placeholder { color: rgba(245,240,232,0.25); }
+
+  .btn-primary {
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    padding: 14px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 4px;
+  }
+  .btn-primary:hover { background: var(--gold-light); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-ghost {
+    background: transparent;
+    color: rgba(245,240,232,0.35);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 10px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover { color: var(--paper); border-color: rgba(255,255,255,0.2); }
+
+  /* ══ SURVEY HEADER ══ */
+  .survey-header {
+    background: var(--ink);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+  }
+
+  .header-left { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+
+  .voter-badge {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    color: var(--paper);
+    white-space: nowrap;
+  }
+  .voter-badge span { color: var(--gold); }
+
+  .section-tabs { display: flex; gap: 0; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+  .section-tab {
+    padding: 7px 16px;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: var(--muted);
+    background: transparent;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .section-tab.active-dest { background: var(--teal); color: white; }
+  .section-tab.active-exp  { background: var(--purple); color: white; }
+  .section-tab.done { color: rgba(201,168,76,0.7); }
+  .section-tab.done::after { content: ' ✓'; }
+
+  .progress-wrap { display: flex; align-items: center; gap: 10px; }
+  .progress-bar {
+    width: 140px; height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .fill-dest { background: var(--teal); }
+  .fill-exp  { background: var(--purple-light); }
+  .progress-text { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: rgba(245,240,232,0.5);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .legend-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  /* ══ SURVEY BODY ══ */
+  #screen-vote { background: var(--paper); color: var(--ink); }
+
+  .section-intro {
+    background: var(--ink);
+    padding: 24px 32px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .section-intro-inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .section-intro-icon { font-size: 32px; }
+  .section-intro-text h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--paper);
+    margin-bottom: 4px;
+  }
+  .section-intro-text p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  .vote-body { padding: 28px 32px; max-width: 960px; margin: 0 auto; width: 100%; }
+
+  .region-section { margin-bottom: 44px; }
+  .region-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .region-title::before {
+    content: '';
+    width: 20px; height: 1px;
+    background: var(--gold);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .region-title.exp-region::before { background: var(--purple-light); }
+
+  .destinations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+
+  .dest-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 13px 14px;
+    cursor: default;
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .dest-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.07); }
+  .dest-card.rated { border-color: #a8d0d2; }
+
+  .dest-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 2px;
+    line-height: 1.2;
+  }
+  .dest-country { font-size: 10px; color: var(--muted); letter-spacing: 0.5px; margin-bottom: 10px; }
+
+  .rating-buttons { display: flex; gap: 4px; flex-wrap: wrap; }
+  .rating-btn {
+    flex: 1;
+    min-width: 0;
+    padding: 5px 3px;
+    border: 1px solid var(--border);
+    background: transparent;
+    border-radius: 3px;
+    font-size: 9px;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+  .rating-btn.active-must     { background: #1a5c4a; color: white; border-color: #1a5c4a; }
+  .rating-btn.active-want     { background: var(--teal); color: white; border-color: var(--teal); }
+  .rating-btn.active-maybe    { background: #7a6e5a; color: white; border-color: #7a6e5a; }
+  .rating-btn.active-been-no  { background: var(--rust); color: white; border-color: var(--rust); }
+  .rating-btn.active-been-yes { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+
+  .exp-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .exp-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.07); }
+  .exp-card.rated { border-color: #b8a8d0; }
+
+  .exp-icon { font-size: 22px; margin-bottom: 6px; display: block; }
+  .exp-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 2px;
+    line-height: 1.3;
+  }
+  .exp-desc { font-size: 10px; color: var(--muted); margin-bottom: 10px; line-height: 1.4; }
+
+  .exp-rating-buttons { display: flex; gap: 5px; }
+  .exp-btn {
+    flex: 1;
+    padding: 6px 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    border-radius: 3px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.2;
+  }
+  .exp-btn.active-bucket  { background: var(--purple); color: white; border-color: var(--purple); }
+  .exp-btn.active-keen    { background: var(--purple-light); color: white; border-color: var(--purple-light); }
+  .exp-btn.active-neutral { background: #7a6e5a; color: white; border-color: #7a6e5a; }
+  .exp-btn.active-no      { background: #c0b8b0; color: white; border-color: #c0b8b0; }
+
+  .vote-actions {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-top: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    z-index: 50;
+  }
+
+  .vote-status { font-size: 13px; color: var(--muted); }
+  .vote-status strong { color: var(--ink); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--border);
+    padding: 11px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--ink); }
+
+  .btn-submit {
+    color: white;
+    border: none;
+    padding: 11px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .btn-submit-dest { background: var(--teal); }
+  .btn-submit-dest:hover { background: var(--teal-light); }
+  .btn-submit-exp  { background: var(--purple); }
+  .btn-submit-exp:hover  { background: var(--purple-light); }
+  .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ══ LOADING OVERLAY ══ */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,14,13,0.85);
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .loading-overlay.visible { opacity: 1; pointer-events: all; }
+  .loading-spinner {
+    width: 36px; height: 36px;
+    border: 2px solid rgba(201,168,76,0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 13px; color: var(--muted); letter-spacing: 1px; }
+
+  /* ══ SUCCESS SCREEN ══ */
+  #screen-success {
+    background: var(--ink);
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 24px;
+  }
+  .success-content { max-width: 480px; position: relative; z-index: 2; }
+  .success-icon { font-size: 56px; margin-bottom: 24px; display: block; }
+  .success-content h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 5vw, 42px);
+    color: var(--paper);
+    margin-bottom: 12px;
+  }
+  .success-content h2 em { color: var(--gold); font-style: italic; }
+  .success-content p { font-size: 15px; color: var(--muted); line-height: 1.65; margin-bottom: 32px; }
+  .success-name {
+    display: inline-block;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 4px;
+    padding: 3px 12px;
+    color: var(--gold);
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    margin-bottom: 24px;
+  }
+  .success-stats {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+  }
+  .success-stat {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    padding: 16px 24px;
+    min-width: 120px;
+  }
+  .success-stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .success-stat-label { font-size: 10px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; }
+  .success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* ══ RESULTS ══ */
+  #screen-results {
+    background: var(--ink);
+    padding: 48px 32px;
+    align-items: center;
+  }
+
+  .results-inner { max-width: 860px; width: 100%; }
+
+  .results-header { text-align: center; margin-bottom: 40px; }
+  .results-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 5vw, 46px);
+    color: var(--paper);
+    margin-bottom: 6px;
+  }
+  .results-meta { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+  .voter-chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
+  .voter-chip {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 11px;
+    color: var(--gold-light);
+  }
+
+  .results-section-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .results-section-tab {
+    flex: 1;
+    padding: 13px;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--muted);
+    background: transparent;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+  }
+  .results-section-tab.active-dest { background: var(--teal); color: white; }
+  .results-section-tab.active-exp  { background: var(--purple); color: white; }
+
+  .results-subtabs { display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+  .results-subtab {
+    padding: 7px 16px;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .results-subtab.active { color: var(--paper); border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.06); }
+
+  .results-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .result-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px;
+    padding: 18px 22px;
+    display: grid;
+    grid-template-columns: 38px 1fr auto;
+    gap: 14px;
+    align-items: start;
+    transition: all 0.2s;
+    animation: slideIn 0.35s ease forwards;
+    opacity: 0;
+  }
+  .result-card:hover { border-color: rgba(201,168,76,0.25); background: rgba(255,255,255,0.06); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-rank {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: rgba(255,255,255,0.12);
+    font-style: italic;
+    text-align: center;
+    padding-top: 2px;
+  }
+  .result-card:nth-child(1) .result-rank { color: var(--gold); }
+  .result-card:nth-child(2) .result-rank { color: rgba(201,168,76,0.55); }
+  .result-card:nth-child(3) .result-rank { color: rgba(201,168,76,0.35); }
+
+  .result-dest {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px;
+    color: var(--paper);
+    margin-bottom: 2px;
+  }
+  .result-region { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+
+  .result-voter-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+  .voter-pill {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    letter-spacing: 0.2px;
+  }
+  .pill-must     { background: rgba(26,92,74,0.4);   color: #6fcfad; border: 1px solid rgba(26,92,74,0.5); }
+  .pill-want     { background: rgba(42,107,110,0.4); color: #7fd4d8; border: 1px solid rgba(42,107,110,0.5); }
+  .pill-maybe    { background: rgba(122,110,90,0.3); color: #bfb49e; border: 1px solid rgba(122,110,90,0.4); }
+  .pill-been-yes { background: rgba(201,168,76,0.3); color: var(--gold-light); border: 1px solid rgba(201,168,76,0.4); }
+  .pill-been-no  { background: rgba(181,70,43,0.3);  color: #e8907a; border: 1px solid rgba(181,70,43,0.4); }
+  .pill-skip     { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.07); }
+  .pill-bucket   { background: rgba(90,62,122,0.5);  color: #c4a8e8; border: 1px solid rgba(90,62,122,0.6); }
+  .pill-keen     { background: rgba(139,109,171,0.4); color: #d4b8f0; border: 1px solid rgba(139,109,171,0.5); }
+  .pill-neutral  { background: rgba(122,110,90,0.3); color: #bfb49e; border: 1px solid rgba(122,110,90,0.4); }
+  .pill-no       { background: rgba(180,170,160,0.2); color: rgba(255,255,255,0.3); border: 1px solid rgba(180,170,160,0.3); }
+
+  .score-bar-wrap { height: 2px; background: rgba(255,255,255,0.07); border-radius: 1px; margin-top: 4px; }
+  .score-bar { height: 100%; border-radius: 1px; transition: width 0.8s ease; }
+  .score-bar-dest { background: var(--teal); }
+  .score-bar-exp  { background: var(--purple-light); }
+
+  .result-score-col { text-align: right; min-width: 72px; padding-top: 2px; }
+  .score-number { font-family: 'Playfair Display', serif; font-size: 30px; line-height: 1; }
+  .score-number-dest { color: var(--gold); }
+  .score-number-exp  { color: var(--purple-light); }
+  .score-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+  .score-going { font-size: 10px; color: var(--teal-light); margin-top: 4px; }
+  .score-going-exp { font-size: 10px; color: var(--purple-light); margin-top: 4px; }
+
+  .participation-note {
+    background: rgba(181,70,43,0.1);
+    border: 1px solid rgba(181,70,43,0.25);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #e8907a;
+  }
+
+  .results-footer { margin-top: 36px; text-align: center; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* ══ ADMIN ══ */
+  #screen-admin {
+    background: var(--ink);
+    padding: 40px 32px;
+    align-items: center;
+  }
+  .admin-inner { max-width: 580px; width: 100%; }
+  .admin-inner h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+    color: var(--paper);
+    margin-bottom: 6px;
+  }
+  .admin-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; line-height: 1.5; }
+
+  .notice {
+    background: rgba(42,107,110,0.1);
+    border: 1px solid rgba(42,107,110,0.25);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--teal-light);
+    margin-bottom: 22px;
+    line-height: 1.5;
+  }
+
+  .voter-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+  .voter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 6px;
+    padding: 12px 16px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .voter-row-name { font-size: 14px; color: var(--paper); }
+  .voter-row-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .voter-row-status {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 10px;
+  }
+  .status-done-dest { background: rgba(42,107,110,0.25); color: var(--teal-light); }
+  .status-done-exp  { background: rgba(90,62,122,0.3);  color: var(--purple-light); }
+  .status-done-both { background: rgba(201,168,76,0.2);  color: var(--gold); }
+  .status-pending   { background: rgba(255,255,255,0.05); color: var(--muted); }
+
+  .voter-row-btn {
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid rgba(181,70,43,0.3);
+    background: transparent;
+    color: #e8907a;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .voter-row-btn:hover { background: rgba(181,70,43,0.1); }
+
+  .add-voter-row { display: flex; gap: 10px; }
+  .add-voter-row input {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,168,76,0.25);
+    color: var(--paper);
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .add-voter-row input:focus { border-color: var(--gold); }
+  .add-voter-row input::placeholder { color: rgba(245,240,232,0.25); }
+
+  .admin-actions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+
+  /* Error message */
+  .error-msg {
+    background: rgba(181,70,43,0.1);
+    border: 1px solid rgba(181,70,43,0.3);
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #e8907a;
+    margin-top: 8px;
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 32px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+  }
+  .modal h3 { font-family: 'Playfair Display', serif; font-size: 22px; margin-bottom: 8px; }
+  .modal p { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.5; }
+  .modal-buttons { display: flex; gap: 10px; justify-content: center; }
+
+  @media (max-width: 600px) {
+    .survey-header { padding: 12px 16px; }
+    .vote-body { padding: 18px 16px; }
+    .vote-actions { padding: 12px 16px; }
+    .destinations-grid { grid-template-columns: 1fr 1fr; }
+    .result-card { grid-template-columns: 30px 1fr; }
+    .result-score-col { display: none; }
+    .legend { display: none; }
+    #screen-results { padding: 28px 16px; }
+    #screen-admin { padding: 28px 16px; }
+  }
+  @media (max-width: 400px) {
+    .destinations-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading overlay — shown during API calls -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loading-text">Saving your ratings…</div>
+</div>
+
+<!-- ══ HOME ══ -->
+<div id="screen-home" class="screen active">
+  <div class="globe-bg"></div>
+  <div class="home-content">
+    <p class="eyebrow">Group Travel Planner</p>
+    <h1>Where Are<br>We <em>Going?</em></h1>
+    <p class="subtitle">Rate destinations and experiences independently. Results show where the group's interests align — no unanimous vote required.</p>
+
+    <div class="survey-overview">
+      <div class="overview-pill"><span class="pill-icon">🌍</span><span>100+ International Destinations</span></div>
+      <div class="overview-pill"><span class="pill-icon">🏠</span><span>US & Domestic</span></div>
+      <div class="overview-pill"><span class="pill-icon">✨</span><span>33 Bucket-List Experiences</span></div>
+    </div>
+
+    <div class="setup-form">
+      <div class="field-group">
+        <label>Your Name</label>
+        <input type="text" id="input-name" placeholder="e.g. Mark" autocomplete="off">
+      </div>
+      <div id="home-error" class="error-msg"></div>
+      <button class="btn-primary" onclick="startVoting()">Begin Survey →</button>
+      <button class="btn-ghost" onclick="showAdmin()">Group Organizer View</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VOTE ══ -->
+<div id="screen-vote" class="screen">
+  <div class="survey-header">
+    <div class="header-left">
+      <div class="voter-badge">Surveying: <span id="voter-name-display">—</span></div>
+      <div class="section-tabs">
+        <button class="section-tab active-dest" id="tab-btn-dest" onclick="switchSection('dest')">Part 1: Destinations</button>
+        <button class="section-tab" id="tab-btn-exp" onclick="switchSection('exp')">Part 2: Experiences</button>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill fill-dest" id="progress-fill" style="width:0%"></div></div>
+        <span class="progress-text" id="progress-text">0% rated</span>
+      </div>
+    </div>
+    <div class="legend" id="vote-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#1a5c4a"></div> Must Go</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#2a6b6e"></div> Want</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7a6e5a"></div> Maybe</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#b5462b"></div> Been/Skip</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#c9a84c"></div> Been/Again</div>
+    </div>
+  </div>
+
+  <div class="section-intro" id="section-intro">
+    <div class="section-intro-inner">
+      <div class="section-intro-icon" id="intro-icon">🌍</div>
+      <div class="section-intro-text">
+        <h2 id="intro-title">Part 1 — Destinations</h2>
+        <p id="intro-desc">Rate each destination. "Been / Skip" means you've been and don't need to return. "Been / Again" means you'd happily go back. Skip any you have no strong feeling about.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="vote-body" id="vote-body"></div>
+
+  <div class="vote-actions">
+    <div class="vote-status">
+      <strong id="rated-count">0</strong> of <strong id="total-count">0</strong> rated &nbsp;·&nbsp; skipping any is fine
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-secondary" onclick="goHome()">← Back</button>
+      <button class="btn-submit btn-submit-dest" id="btn-next-submit" onclick="nextOrSubmit()">
+        Next: Experiences →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SUCCESS ══ -->
+<div id="screen-success" class="screen">
+  <div class="globe-bg"></div>
+  <div class="success-content">
+    <span class="success-icon">✈️</span>
+    <h2>You're on the <em>list!</em></h2>
+    <div class="success-name" id="success-name"></div>
+    <p>Your ratings have been saved. Mark will share the results once everyone has submitted.</p>
+    <div class="success-stats">
+      <div class="success-stat">
+        <div class="success-stat-num" id="success-dest-count">0</div>
+        <div class="success-stat-label">Destinations rated</div>
+      </div>
+      <div class="success-stat">
+        <div class="success-stat-num" id="success-exp-count">0</div>
+        <div class="success-stat-label">Experiences rated</div>
+      </div>
+    </div>
+    <div class="success-actions">
+      <button class="btn-ghost" style="color:rgba(245,240,232,0.5);border-color:rgba(255,255,255,0.1);padding:12px 20px;" onclick="goHome()">← Submit for Someone Else</button>
+      <button class="btn-primary" onclick="viewResults()">View Group Results →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RESULTS ══ -->
+<div id="screen-results" class="screen">
+  <div class="results-inner">
+    <div class="results-header">
+      <p class="eyebrow">Group Results</p>
+      <h2>The Shortlist</h2>
+      <p class="results-meta" id="results-meta"></p>
+      <div class="voter-chips" id="voter-chips"></div>
+    </div>
+
+    <div id="participation-note" class="participation-note" style="display:none"></div>
+
+    <div class="results-section-tabs">
+      <button class="results-section-tab active-dest" id="rsec-dest" onclick="setResultSection('dest')">🌍 Destinations</button>
+      <button class="results-section-tab" id="rsec-exp" onclick="setResultSection('exp')">✨ Experiences</button>
+    </div>
+
+    <div class="results-subtabs" id="results-subtabs"></div>
+    <div class="results-list" id="results-list"></div>
+
+    <div class="results-footer">
+      <button class="btn-ghost" style="color:rgba(245,240,232,0.5);border-color:rgba(255,255,255,0.1);padding:12px 20px;" onclick="goHome()">← Add Another Voter</button>
+      <button class="btn-primary" onclick="showAdmin()">Manage Group →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADMIN ══ -->
+<div id="screen-admin" class="screen">
+  <div class="admin-inner">
+    <p class="eyebrow" style="color:var(--gold);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;">Organizer</p>
+    <h2>Group Dashboard</h2>
+    <p class="admin-sub">Track who has completed the survey. Results update as more travelers submit ratings.</p>
+
+    <div class="notice" id="admin-notice">Loading…</div>
+    <div class="voter-list" id="admin-voter-list"></div>
+
+    <div class="add-voter-row">
+      <input type="text" id="add-voter-input" placeholder="Add traveler name…" />
+      <button class="btn-primary" style="padding:10px 18px;white-space:nowrap;" onclick="addVoterFromAdmin()">+ Add</button>
+    </div>
+
+    <div class="admin-actions">
+      <button class="btn-ghost" style="color:var(--paper);border-color:rgba(255,255,255,0.15);" onclick="goHome()">← Back</button>
+      <button class="btn-submit btn-submit-dest" onclick="viewResults()">View Results →</button>
+      <button class="btn-secondary" style="color:#e8907a;border-color:rgba(181,70,43,0.3);" onclick="confirmReset()">Reset All Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title">Confirm</h3>
+    <p id="modal-body">Are you sure?</p>
+    <div class="modal-buttons">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" style="background:var(--rust)" id="modal-confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA — destinations and experiences
+// (identical to the original prototype)
+// ══════════════════════════════════════════
+
+const DESTINATIONS = [
+  { id:'paris',       name:'Paris',            country:'France',          region:'Europe — Western' },
+  { id:'rome',        name:'Rome',             country:'Italy',           region:'Europe — Western' },
+  { id:'barcelona',   name:'Barcelona',        country:'Spain',           region:'Europe — Western' },
+  { id:'amsterdam',   name:'Amsterdam',        country:'Netherlands',     region:'Europe — Western' },
+  { id:'lisbon',      name:'Lisbon',           country:'Portugal',        region:'Europe — Western' },
+  { id:'porto',       name:'Porto',            country:'Portugal',        region:'Europe — Western' },
+  { id:'algarve',     name:'Algarve',          country:'Portugal',        region:'Europe — Western' },
+  { id:'madrid',      name:'Madrid',           country:'Spain',           region:'Europe — Western' },
+  { id:'london',      name:'London',           country:'UK',              region:'Europe — Western' },
+  { id:'florence',    name:'Florence',         country:'Italy',           region:'Europe — Western' },
+  { id:'tuscany',     name:'Tuscany',          country:'Italy',           region:'Europe — Western' },
+  { id:'amalfi',      name:'Amalfi Coast',     country:'Italy',           region:'Europe — Western' },
+  { id:'cinque',      name:'Cinque Terre',     country:'Italy',           region:'Europe — Western' },
+  { id:'santorini',   name:'Santorini',        country:'Greece',          region:'Europe — Western' },
+  { id:'athens',      name:'Athens',           country:'Greece',          region:'Europe — Western' },
+  { id:'vienna',      name:'Vienna',           country:'Austria',         region:'Europe — Western' },
+  { id:'zurich',      name:'Zurich',           country:'Switzerland',     region:'Europe — Western' },
+  { id:'reykjavik',   name:'Reykjavik',        country:'Iceland',         region:'Europe — Northern' },
+  { id:'copenhagen',  name:'Copenhagen',       country:'Denmark',         region:'Europe — Northern' },
+  { id:'stockholm',   name:'Stockholm',        country:'Sweden',          region:'Europe — Northern' },
+  { id:'edinburgh',   name:'Edinburgh',        country:'Scotland',        region:'Europe — Northern' },
+  { id:'dublin',      name:'Dublin',           country:'Ireland',         region:'Europe — Northern' },
+  { id:'prague',      name:'Prague',           country:'Czech Republic',  region:'Europe — Eastern' },
+  { id:'budapest',    name:'Budapest',         country:'Hungary',         region:'Europe — Eastern' },
+  { id:'krakow',      name:'Kraków',           country:'Poland',          region:'Europe — Eastern' },
+  { id:'dubrovnik',   name:'Dubrovnik',        country:'Croatia',         region:'Europe — Eastern' },
+  { id:'montenegro',  name:'Kotor',            country:'Montenegro',      region:'Europe — Eastern' },
+  { id:'tokyo',       name:'Tokyo',            country:'Japan',           region:'Asia — East' },
+  { id:'kyoto',       name:'Kyoto',            country:'Japan',           region:'Asia — East' },
+  { id:'osaka',       name:'Osaka',            country:'Japan',           region:'Asia — East' },
+  { id:'seoul',       name:'Seoul',            country:'South Korea',     region:'Asia — East' },
+  { id:'shanghai',    name:'Shanghai',         country:'China',           region:'Asia — East' },
+  { id:'hongkong',    name:'Hong Kong',        country:'China SAR',       region:'Asia — East' },
+  { id:'taipei',      name:'Taipei',           country:'Taiwan',          region:'Asia — East' },
+  { id:'bali',        name:'Bali',             country:'Indonesia',       region:'Asia — Southeast' },
+  { id:'bangkok',     name:'Bangkok',          country:'Thailand',        region:'Asia — Southeast' },
+  { id:'chiangmai',   name:'Chiang Mai',       country:'Thailand',        region:'Asia — Southeast' },
+  { id:'singapore',   name:'Singapore',        country:'Singapore',       region:'Asia — Southeast' },
+  { id:'hoi-an',      name:'Hoi An',           country:'Vietnam',         region:'Asia — Southeast' },
+  { id:'hanoi',       name:'Hanoi',            country:'Vietnam',         region:'Asia — Southeast' },
+  { id:'halong',      name:'Ha Long Bay',      country:'Vietnam',         region:'Asia — Southeast' },
+  { id:'luang',       name:'Luang Prabang',    country:'Laos',            region:'Asia — Southeast' },
+  { id:'angkor',      name:'Angkor Wat',       country:'Cambodia',        region:'Asia — Southeast' },
+  { id:'palawan',     name:'Palawan',          country:'Philippines',     region:'Asia — Southeast' },
+  { id:'rajasthan',   name:'Rajasthan',        country:'India',           region:'Asia — South' },
+  { id:'kerala',      name:'Kerala',           country:'India',           region:'Asia — South' },
+  { id:'maldives',    name:'Maldives',         country:'Maldives',        region:'Asia — South' },
+  { id:'srilanka',    name:'Sri Lanka',        country:'Sri Lanka',       region:'Asia — South' },
+  { id:'dubai',       name:'Dubai',            country:'UAE',             region:'Asia — West' },
+  { id:'istanbul',    name:'Istanbul',         country:'Turkey',          region:'Asia — West' },
+  { id:'cappadocia',  name:'Cappadocia',       country:'Turkey',          region:'Asia — West' },
+  { id:'jordan',      name:'Petra & Wadi Rum', country:'Jordan',          region:'Asia — West' },
+  { id:'oman',        name:'Oman',             country:'Oman',            region:'Asia — West' },
+  { id:'capetown',    name:'Cape Town',        country:'South Africa',    region:'Africa' },
+  { id:'serengeti',   name:'Serengeti',        country:'Tanzania',        region:'Africa' },
+  { id:'zanzibar',    name:'Zanzibar',         country:'Tanzania',        region:'Africa' },
+  { id:'kenya',       name:'Masai Mara',       country:'Kenya',           region:'Africa' },
+  { id:'marrakech',   name:'Marrakech',        country:'Morocco',         region:'Africa' },
+  { id:'cairo',       name:'Cairo & Luxor',    country:'Egypt',           region:'Africa' },
+  { id:'namibia',     name:'Namibia',          country:'Namibia',         region:'Africa' },
+  { id:'victoria',    name:'Victoria Falls',   country:'Zambia/Zimbabwe', region:'Africa' },
+  { id:'rwanda',      name:'Rwanda Gorillas',  country:'Rwanda',          region:'Africa' },
+  { id:'costarica',   name:'Costa Rica',       country:'Costa Rica',      region:'Americas — Central' },
+  { id:'cuba',        name:'Havana',           country:'Cuba',            region:'Americas — Caribbean' },
+  { id:'turks',       name:'Turks & Caicos',   country:'Caribbean',       region:'Americas — Caribbean' },
+  { id:'puertorico',  name:'Puerto Rico',      country:'Caribbean',       region:'Americas — Caribbean' },
+  { id:'jamaica',     name:'Jamaica',          country:'Caribbean',       region:'Americas — Caribbean' },
+  { id:'machu',       name:'Machu Picchu',     country:'Peru',            region:'Americas — South' },
+  { id:'cusco',       name:'Sacred Valley / Cusco', country:'Peru',       region:'Americas — South' },
+  { id:'buenosaires', name:'Buenos Aires',     country:'Argentina',       region:'Americas — South' },
+  { id:'patagonia',   name:'Patagonia',        country:'Argentina/Chile', region:'Americas — South' },
+  { id:'galapagos',   name:'Galápagos',        country:'Ecuador',         region:'Americas — South' },
+  { id:'rio',         name:'Rio de Janeiro',   country:'Brazil',          region:'Americas — South' },
+  { id:'colombia',    name:'Cartagena',        country:'Colombia',        region:'Americas — South' },
+  { id:'sydney',      name:'Sydney',           country:'Australia',       region:'Pacific & Oceania' },
+  { id:'greatbarrier',name:'Great Barrier Reef',country:'Australia',      region:'Pacific & Oceania' },
+  { id:'nz-south',    name:'New Zealand South Island', country:'New Zealand', region:'Pacific & Oceania' },
+  { id:'nz-north',    name:'New Zealand North Island', country:'New Zealand', region:'Pacific & Oceania' },
+  { id:'tahiti',      name:'Tahiti & Bora Bora',country:'French Polynesia',region:'Pacific & Oceania' },
+  { id:'fiji',        name:'Fiji',             country:'Fiji',            region:'Pacific & Oceania' },
+  { id:'nyc',         name:'New York City',    country:'USA',             region:'USA — Cities' },
+  { id:'chicago',     name:'Chicago',          country:'USA',             region:'USA — Cities' },
+  { id:'nashville',   name:'Nashville',        country:'USA',             region:'USA — Cities' },
+  { id:'newOrleans',  name:'New Orleans',      country:'USA',             region:'USA — Cities' },
+  { id:'miami',       name:'Miami',            country:'USA',             region:'USA — Cities' },
+  { id:'charleston',  name:'Charleston, SC',   country:'USA',             region:'USA — Cities' },
+  { id:'sanfran',     name:'San Francisco',    country:'USA',             region:'USA — Cities' },
+  { id:'portland',    name:'Portland / Pacific NW', country:'USA',        region:'USA — Cities' },
+  { id:'hawaii',      name:'Hawaii',           country:'USA',             region:'USA — Nature' },
+  { id:'alaska',      name:'Alaska',           country:'USA',             region:'USA — Nature' },
+  { id:'southwest',   name:'Southwest Parks (Zion, Bryce, Arches)', country:'USA', region:'USA — Nature' },
+  { id:'yellowstone', name:'Yellowstone & Grand Teton', country:'USA',    region:'USA — Nature' },
+  { id:'glacier',     name:'Glacier National Park', country:'USA',        region:'USA — Nature' },
+  { id:'florida-keys',name:'Florida Keys',     country:'USA',             region:'USA — Nature' },
+  { id:'mexico',      name:'Mexico City',      country:'Mexico',          region:'Mexico & Canada' },
+  { id:'yucatan',     name:'Yucatán',          country:'Mexico',          region:'Mexico & Canada' },
+  { id:'oaxaca',      name:'Oaxaca',           country:'Mexico',          region:'Mexico & Canada' },
+  { id:'loscabos',    name:'Los Cabos / Baja', country:'Mexico',          region:'Mexico & Canada' },
+  { id:'banff',       name:'Banff',            country:'Canada',          region:'Mexico & Canada' },
+  { id:'vancouver',   name:'Vancouver',        country:'Canada',          region:'Mexico & Canada' },
+  { id:'montreal',    name:'Montréal',         country:'Canada',          region:'Mexico & Canada' },
+  { id:'quebeccity',  name:'Québec City',      country:'Canada',          region:'Mexico & Canada' },
+  { id:'yukon',       name:'Yukon / Northern Lights', country:'Canada',   region:'Mexico & Canada' },
+];
+
+const EXPERIENCES = [
+  { id:'balloon',    name:'Hot Air Balloon Ride',              icon:'🎈', cat:'Adventure & Discovery',    desc:'Cappadocia, Serengeti, Loire Valley, Napa' },
+  { id:'safari',     name:'Open-Vehicle Safari',               icon:'🦁', cat:'Adventure & Discovery',    desc:'Big Five, dawn game drive, tented bush camp' },
+  { id:'glacier',    name:'Guided Glacier Walk',               icon:'🧊', cat:'Adventure & Discovery',    desc:'Iceland, New Zealand, Patagonia — no climbing required' },
+  { id:'scuba',      name:'Scuba Dive a World-Class Reef',     icon:'🤿', cat:'Adventure & Discovery',    desc:'Great Barrier Reef, Palau, Galápagos, Maldives' },
+  { id:'snorkel',    name:'Snorkeling with Whale Sharks',      icon:'🐋', cat:'Adventure & Discovery',    desc:'Ningaloo Reef, Isla Holbox, Oslob Philippines' },
+  { id:'yacht',      name:'Private Yacht or Sailing Charter',  icon:'⛵', cat:'Adventure & Discovery',    desc:'Greek islands, BVI, Croatia — live aboard for a week' },
+  { id:'expedition', name:'Expedition Cruise',                 icon:'🧭', cat:'Adventure & Discovery',    desc:'Antarctica, Arctic, Galápagos — small ship, big wilderness' },
+  { id:'kayak',      name:'Kayaking a Remote Waterway',        icon:'🚣', cat:'Adventure & Discovery',    desc:'Norwegian fjords, Halong Bay, Patagonia channels' },
+  { id:'aurora',     name:'Northern Lights (Aurora)',          icon:'🌌', cat:'Natural Wonders',          desc:'Iceland, Norway, Yukon — ideally far from any city light' },
+  { id:'eclipse',    name:'Total Solar Eclipse',               icon:'🌑', cat:'Natural Wonders',          desc:'Full totality — one of the rarest sky events' },
+  { id:'volcano',    name:'Active Volcano Up Close',           icon:'🌋', cat:'Natural Wonders',          desc:'Hawaii lava fields, Iceland, Stromboli by boat' },
+  { id:'bio',        name:'Bioluminescent Bay at Night',       icon:'✨', cat:'Natural Wonders',          desc:'Puerto Rico, Maldives, Jervis Bay Australia' },
+  { id:'migration',  name:'Witness a Great Migration',         icon:'🦋', cat:'Natural Wonders',          desc:'Wildebeest, whale sharks, monarch butterflies' },
+  { id:'darksky',    name:'True Dark Sky Stargazing',          icon:'🔭', cat:'Natural Wonders',          desc:'Atacama, Namibia, NZ Mackenzie Basin' },
+  { id:'sunrise',    name:'Sunrise at an Iconic Landmark',     icon:'🌅', cat:'Natural Wonders',          desc:'Angkor Wat, Machu Picchu, Uluru, Santorini caldera' },
+  { id:'ruins',      name:'Walk a Major Ancient Ruin',         icon:'🏛️', cat:'History & Culture',        desc:'Pompeii, Angkor, Machu Picchu, Petra, Ephesus' },
+  { id:'festival',   name:'Attend a World-Famous Festival',    icon:'🎭', cat:'History & Culture',        desc:'Carnival, Cherry Blossom, Diwali, Oktoberfest' },
+  { id:'castle',     name:'Stay in a Castle or Palace',        icon:'🏰', cat:'History & Culture',        desc:'Centuries-old property converted to a hotel' },
+  { id:'UNESCO',     name:'UNESCO World Heritage Deep Dive',   icon:'🗿', cat:'History & Culture',        desc:'Full-day guided immersion at a World Heritage Site' },
+  { id:'sport',      name:'Major Sporting Event Abroad',       icon:'🏟️', cat:'History & Culture',        desc:'World Cup, Six Nations rugby, Tour de France, F1 Grand Prix' },
+  { id:'performance',name:'World-Class Performance in Its Home Venue', icon:'🎶', cat:'History & Culture', desc:'La Scala, Sydney Opera House, Vienna Philharmonic' },
+  { id:'tasting',    name:'Destination Tasting Menu',          icon:'🍽️', cat:'Food & Wine',              desc:'Multi-course at a world-renowned restaurant' },
+  { id:'cooking',    name:'Cooking Class Abroad',              icon:'👨‍🍳', cat:'Food & Wine',             desc:'Local chef, market visit, eat what you make' },
+  { id:'wine',       name:'Wine Region Immersion',             icon:'🍷', cat:'Food & Wine',              desc:'Bordeaux, Tuscany, Mendoza, Willamette Valley' },
+  { id:'streetfood', name:'Street Food Tour with a Local',     icon:'🥟', cat:'Food & Wine',              desc:'Bangkok, Mexico City, Marrakech, Hanoi' },
+  { id:'whisky',     name:'Whisky or Craft Spirits Trail',     icon:'🥃', cat:'Food & Wine',              desc:'Scottish distillery tour, Kentucky Bourbon Trail, Irish whiskey' },
+  { id:'market',     name:'World-Famous Food Market',          icon:'🧺', cat:'Food & Wine',              desc:'Tsukiji Tokyo, La Boqueria Barcelona, Borough Market London' },
+  { id:'overwater',  name:'Overwater Bungalow',                icon:'🛖', cat:'Unique Stays & Journeys',  desc:'Maldives, Bora Bora, Fiji — wake up over the water' },
+  { id:'train',      name:'Iconic Train Journey',              icon:'🚂', cat:'Unique Stays & Journeys',  desc:'Orient Express, Rocky Mountaineer, Rovos Rail South Africa' },
+  { id:'river',      name:'River Cruise',                      icon:'🚢', cat:'Unique Stays & Journeys',  desc:'Douro, Danube, Mekong, Amazon — slow travel by water' },
+  { id:'thermal',    name:'Thermal Baths & Spa Culture',       icon:'♨️', cat:'Unique Stays & Journeys',  desc:'Budapest, Blue Lagoon Iceland, Japanese onsen, Turkish hammam' },
+  { id:'villa',      name:'Private Villa Rental for the Group',icon:'🏡', cat:'Unique Stays & Journeys',  desc:'Tuscany, Provence, Santorini — the whole group under one roof' },
+  { id:'roadtrip',   name:'Iconic Road Trip',                  icon:'🚗', cat:'Unique Stays & Journeys',  desc:'Great Ocean Road, Ring of Kerry, Pacific Coast Highway' },
+];
+
+const DEST_SCORING = { must: 4, want: 3, 'been-yes': 2, maybe: 1, 'been-no': -1, skip: 0 };
+const EXP_SCORING  = { bucket: 4, keen: 3, neutral: 1, no: 0, skip: 0 };
+const DEST_LABELS  = { must:'★ Must Go', want:'Want to Go', maybe:'Maybe', 'been-no':'Been / Skip', 'been-yes':'Been / Again' };
+const EXP_LABELS   = { bucket:'Bucket List', keen:'Keen', neutral:'Maybe', no:'Not for Me' };
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let currentVoter      = null;
+let currentDestRatings = {};
+let currentExpRatings  = {};
+let currentSection    = 'dest';
+let resultSection     = 'dest';
+let resultSubTab      = 'top';
+let allResults        = [];   // cached from last /api/results fetch
+
+// ══════════════════════════════════════════
+// LOADING HELPERS
+// ══════════════════════════════════════════
+function showLoading(msg) {
+  document.getElementById('loading-text').textContent = msg || 'Loading…';
+  document.getElementById('loading-overlay').classList.add('visible');
+}
+function hideLoading() {
+  document.getElementById('loading-overlay').classList.remove('visible');
+}
+
+// ══════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+function goHome()    { showScreen('home'); }
+function showAdmin() { loadAndRenderAdmin(); showScreen('admin'); }
+
+async function viewResults() {
+  showLoading('Loading results…');
+  try {
+    const res  = await fetch('/api/results');
+    allResults = await res.json();
+    renderResults();
+    showScreen('results');
+  } catch(e) {
+    alert('Could not load results. Please try again.');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ══════════════════════════════════════════
+// VOTING
+// ══════════════════════════════════════════
+function startVoting() {
+  const name = document.getElementById('input-name').value.trim();
+  const errEl = document.getElementById('home-error');
+  if (!name) {
+    errEl.textContent = 'Please enter your name to begin.';
+    errEl.classList.add('visible');
+    return;
+  }
+  errEl.classList.remove('visible');
+  currentVoter       = name;
+  currentDestRatings = {};
+  currentExpRatings  = {};
+  document.getElementById('voter-name-display').textContent = name;
+  switchSection('dest');
+  showScreen('vote');
+}
+
+function switchSection(sec) {
+  currentSection = sec;
+
+  const dBtn = document.getElementById('tab-btn-dest');
+  const eBtn = document.getElementById('tab-btn-exp');
+  dBtn.className = 'section-tab' + (sec === 'dest' ? ' active-dest' : '');
+  eBtn.className = 'section-tab' + (sec === 'exp'  ? ' active-exp'  : '');
+  if (sec === 'exp'  && Object.keys(currentDestRatings).length > 0) dBtn.classList.add('done');
+  if (sec === 'dest' && Object.keys(currentExpRatings).length  > 0) eBtn.classList.add('done');
+
+  if (sec === 'dest') {
+    document.getElementById('intro-icon').textContent  = '🌍';
+    document.getElementById('intro-title').textContent = 'Part 1 — Destinations';
+    document.getElementById('intro-desc').textContent  = 'Rate each destination. "Been / Skip" means you\'ve been and don\'t need to return. "Been / Again" means you\'d happily go back. Skip any you have no strong feeling about.';
+    document.getElementById('progress-fill').className = 'progress-fill fill-dest';
+  } else {
+    document.getElementById('intro-icon').textContent  = '✨';
+    document.getElementById('intro-title').textContent = 'Part 2 — Experiences';
+    document.getElementById('intro-desc').textContent  = 'Rate each bucket-list experience by how much you want it to be part of a group trip.';
+    document.getElementById('progress-fill').className = 'progress-fill fill-exp';
+  }
+
+  const legend = document.getElementById('vote-legend');
+  if (sec === 'dest') {
+    legend.innerHTML = `
+      <div class="legend-item"><div class="legend-dot" style="background:#1a5c4a"></div> Must Go</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#2a6b6e"></div> Want</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7a6e5a"></div> Maybe</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#b5462b"></div> Been/Skip</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#c9a84c"></div> Been/Again</div>`;
+  } else {
+    legend.innerHTML = `
+      <div class="legend-item"><div class="legend-dot" style="background:#5a3e7a"></div> Bucket List</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#8b6dab"></div> Keen</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7a6e5a"></div> Maybe</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#c0b8b0"></div> Not for Me</div>`;
+  }
+
+  const btn = document.getElementById('btn-next-submit');
+  if (sec === 'dest') {
+    btn.textContent = 'Next: Experiences →';
+    btn.className   = 'btn-submit btn-submit-dest';
+    btn.onclick     = () => switchSection('exp');
+  } else {
+    btn.textContent = 'Submit My Ratings →';
+    btn.className   = 'btn-submit btn-submit-exp';
+    btn.onclick     = submitVotes;
+  }
+
+  renderVoteBody();
+  updateProgress();
+}
+
+function nextOrSubmit() {} // placeholder — overwritten by switchSection
+
+function renderVoteBody() {
+  if (currentSection === 'dest') renderDestSection();
+  else renderExpSection();
+}
+
+function renderDestSection() {
+  const regions = {};
+  DESTINATIONS.forEach(d => { if (!regions[d.region]) regions[d.region] = []; regions[d.region].push(d); });
+  let html = '';
+  for (const [region, dests] of Object.entries(regions)) {
+    html += `<div class="region-section"><div class="region-title">${region}</div><div class="destinations-grid">`;
+    dests.forEach(d => { html += renderDestCard(d); });
+    html += `</div></div>`;
+  }
+  document.getElementById('vote-body').innerHTML = html;
+  document.getElementById('total-count').textContent = DESTINATIONS.length;
+}
+
+function renderDestCard(d) {
+  const r = currentDestRatings[d.id] || '';
+  const btns = ['must','want','maybe','been-no','been-yes'].map(k =>
+    `<button class="rating-btn ${r===k?'active-'+k:''}" onclick="rateItem('${d.id}','${k}',this,'dest')">${DEST_LABELS[k]}</button>`
+  ).join('');
+  return `<div class="dest-card ${r?'rated':''}" id="card-${d.id}">
+    <div class="dest-name">${d.name}</div>
+    <div class="dest-country">${d.country}</div>
+    <div class="rating-buttons">${btns}</div>
+  </div>`;
+}
+
+function renderExpSection() {
+  const cats = {};
+  EXPERIENCES.forEach(e => { if (!cats[e.cat]) cats[e.cat] = []; cats[e.cat].push(e); });
+  let html = '';
+  for (const [cat, exps] of Object.entries(cats)) {
+    html += `<div class="region-section"><div class="region-title exp-region">${cat}</div><div class="destinations-grid">`;
+    exps.forEach(e => { html += renderExpCard(e); });
+    html += `</div></div>`;
+  }
+  document.getElementById('vote-body').innerHTML = html;
+  document.getElementById('total-count').textContent = EXPERIENCES.length;
+}
+
+function renderExpCard(e) {
+  const r = currentExpRatings[e.id] || '';
+  const btns = ['bucket','keen','neutral','no'].map(k =>
+    `<button class="exp-btn ${r===k?'active-'+k:''}" onclick="rateItem('${e.id}','${k}',this,'exp')">${EXP_LABELS[k]}</button>`
+  ).join('');
+  return `<div class="exp-card ${r?'rated':''}" id="card-${e.id}">
+    <span class="exp-icon">${e.icon}</span>
+    <div class="exp-name">${e.name}</div>
+    <div class="exp-desc">${e.desc}</div>
+    <div class="exp-rating-buttons">${btns}</div>
+  </div>`;
+}
+
+function rateItem(id, rating, btnEl, type) {
+  const card    = document.getElementById('card-' + id);
+  const ratings = type === 'dest' ? currentDestRatings : currentExpRatings;
+  const prev    = ratings[id];
+  const btnClass = type === 'dest' ? 'rating-btn' : 'exp-btn';
+
+  if (prev === rating) {
+    delete ratings[id];
+    card.querySelectorAll('.' + btnClass).forEach(b => b.className = btnClass);
+    card.classList.remove('rated');
+  } else {
+    ratings[id] = rating;
+    card.querySelectorAll('.' + btnClass).forEach(b => b.className = btnClass);
+    btnEl.classList.add('active-' + rating);
+    card.classList.add('rated');
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  const ratings = currentSection === 'dest' ? currentDestRatings : currentExpRatings;
+  const total   = currentSection === 'dest' ? DESTINATIONS.length : EXPERIENCES.length;
+  const rated   = Object.keys(ratings).length;
+  const pct     = Math.round(rated / total * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = pct + '% rated';
+  document.getElementById('rated-count').textContent   = rated;
+}
+
+// ── Submit ratings to the server ──────────
+async function submitVotes() {
+  if (Object.keys(currentDestRatings).length === 0 && Object.keys(currentExpRatings).length === 0) {
+    if (!confirm('You haven\'t rated anything. Submit anyway?')) return;
+  }
+
+  showLoading('Saving your ratings…');
+  try {
+    const res = await fetch('/api/submit', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        voterName:   currentVoter,
+        destRatings: currentDestRatings,
+        expRatings:  currentExpRatings
+      })
+    });
+
+    if (!res.ok) throw new Error('Server error');
+
+    // Show success screen
+    document.getElementById('success-name').textContent       = currentVoter;
+    document.getElementById('success-dest-count').textContent = Object.keys(currentDestRatings).length;
+    document.getElementById('success-exp-count').textContent  = Object.keys(currentExpRatings).length;
+    showScreen('success');
+
+  } catch(e) {
+    alert('There was a problem saving your ratings. Please try again.');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ══════════════════════════════════════════
+// RESULTS
+// ══════════════════════════════════════════
+function computeDestScores() {
+  const voters = allResults.map(r => r.voterName);
+  return DESTINATIONS.map(d => {
+    let score = 0, voterData = {}, going = 0, skipping = 0;
+    allResults.forEach(r => {
+      const rating = (r.destRatings || {})[d.id] || 'skip';
+      voterData[r.voterName] = rating;
+      score += DEST_SCORING[rating] || 0;
+      if (['must','want','maybe','been-yes'].includes(rating)) going++;
+      if (rating === 'been-no') skipping++;
+    });
+    return { item: d, score, voterData, going, skipping, total: voters.length, type: 'dest' };
+  }).sort((a,b) => b.score - a.score);
+}
+
+function computeExpScores() {
+  const voters = allResults.map(r => r.voterName);
+  return EXPERIENCES.map(e => {
+    let score = 0, voterData = {}, keen = 0;
+    allResults.forEach(r => {
+      const rating = (r.expRatings || {})[e.id] || 'skip';
+      voterData[r.voterName] = rating;
+      score += EXP_SCORING[rating] || 0;
+      if (['bucket','keen'].includes(rating)) keen++;
+    });
+    return { item: e, score, voterData, keen, total: voters.length, type: 'exp' };
+  }).sort((a,b) => b.score - a.score);
+}
+
+function setResultSection(sec) {
+  resultSection = sec;
+  resultSubTab  = 'top';
+  document.getElementById('rsec-dest').className = 'results-section-tab' + (sec==='dest' ? ' active-dest' : '');
+  document.getElementById('rsec-exp').className  = 'results-section-tab' + (sec==='exp'  ? ' active-exp'  : '');
+  renderSubTabs();
+  renderResultsList();
+}
+
+function setResultSubTab(tab) { resultSubTab = tab; renderSubTabs(); renderResultsList(); }
+
+function renderSubTabs() {
+  const tabs = resultSection === 'dest'
+    ? [['top','Top Picks'],['consensus','Most Agreed'],['all','Full List']]
+    : [['top','Top Experiences'],['all','Full List']];
+  document.getElementById('results-subtabs').innerHTML = tabs.map(([id, label]) =>
+    `<button class="results-subtab ${resultSubTab===id?'active':''}" onclick="setResultSubTab('${id}')">${label}</button>`
+  ).join('');
+}
+
+function renderResults() {
+  const voters = allResults.map(r => r.voterName);
+  document.getElementById('results-meta').textContent =
+    `${voters.length} traveler${voters.length !== 1 ? 's' : ''} have submitted ratings`;
+  document.getElementById('voter-chips').innerHTML = voters.map(v =>
+    `<div class="voter-chip">${v}</div>`).join('');
+
+  const note = document.getElementById('participation-note');
+  if (voters.length < 2) {
+    note.style.display = 'block';
+    note.textContent   = `Only ${voters.length} traveler has submitted so far. Results are more meaningful with the full group.`;
+  } else {
+    note.style.display = 'none';
+  }
+
+  resultSection = 'dest';
+  resultSubTab  = 'top';
+  document.getElementById('rsec-dest').className = 'results-section-tab active-dest';
+  document.getElementById('rsec-exp').className  = 'results-section-tab';
+  renderSubTabs();
+  renderResultsList();
+}
+
+function renderResultsList() {
+  const voters    = allResults.map(r => r.voterName);
+  const isDest    = resultSection === 'dest';
+  const allScores = isDest ? computeDestScores() : computeExpScores();
+  const maxScore  = Math.max(...allScores.map(s => s.score), 1);
+
+  let filtered = [...allScores];
+  if (resultSubTab === 'top') {
+    filtered = filtered.slice(0, 15);
+  } else if (resultSubTab === 'consensus') {
+    filtered = allScores.map(s => {
+      const pos = Object.values(s.voterData).filter(r => ['must','want','been-yes','bucket','keen'].includes(r)).length;
+      return { ...s, posRate: voters.length ? pos / voters.length : 0 };
+    }).sort((a,b) => b.posRate - a.posRate).slice(0, 15);
+  } else {
+    filtered = filtered.slice(0, 40);
+  }
+
+  if (!filtered.length) {
+    document.getElementById('results-list').innerHTML =
+      '<p style="color:var(--muted);text-align:center;padding:48px 0;">No ratings yet. Have travelers complete the survey first.</p>';
+    return;
+  }
+
+  document.getElementById('results-list').innerHTML = filtered.map((item, i) => {
+    const { score, voterData, total } = item;
+    const barW  = Math.max(0, Math.round((score / maxScore) * 100));
+    const pills = voters.map(v => {
+      const r = voterData[v] || 'skip';
+      return `<span class="voter-pill ${getPillClass(r, isDest)}" title="${v}: ${isDest ? (DEST_LABELS[r]||'No rating') : (EXP_LABELS[r]||'No rating')}">${v}</span>`;
+    }).join('');
+    const name    = item.item.name;
+    const subtext = isDest ? item.item.country + ' · ' + item.item.region : item.item.cat + (item.item.icon ? ' ' + item.item.icon : '');
+    const goingNote = isDest
+      ? `${item.going} of ${total} likely going${item.skipping > 0 ? ` · ${item.skipping} would skip` : ''}`
+      : `${item.keen} of ${total} enthusiastic`;
+
+    return `<div class="result-card" style="animation-delay:${i*0.04}s">
+      <div class="result-rank">${i+1}</div>
+      <div>
+        <div class="result-dest">${name}</div>
+        <div class="result-region">${subtext}</div>
+        <div class="result-voter-row">${pills}</div>
+        <div class="score-bar-wrap"><div class="score-bar ${isDest ? 'score-bar-dest' : 'score-bar-exp'}" style="width:${barW}%"></div></div>
+      </div>
+      <div class="result-score-col">
+        <div class="score-number ${isDest ? 'score-number-dest' : 'score-number-exp'}">${score}</div>
+        <div class="score-label">pts</div>
+        <div class="${isDest ? 'score-going' : 'score-going-exp'}">${goingNote}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getPillClass(r, isDest) {
+  if (isDest) {
+    return { must:'pill-must', want:'pill-want', maybe:'pill-maybe', 'been-no':'pill-been-no', 'been-yes':'pill-been-yes', skip:'pill-skip' }[r] || 'pill-skip';
+  }
+  return { bucket:'pill-bucket', keen:'pill-keen', neutral:'pill-neutral', no:'pill-no', skip:'pill-skip' }[r] || 'pill-skip';
+}
+
+// ══════════════════════════════════════════
+// ADMIN
+// ══════════════════════════════════════════
+async function loadAndRenderAdmin() {
+  document.getElementById('admin-notice').textContent = 'Loading…';
+  document.getElementById('admin-voter-list').innerHTML = '';
+  try {
+    const res    = await fetch('/api/voters');
+    const voters = await res.json();
+    renderAdmin(voters);
+  } catch(e) {
+    document.getElementById('admin-notice').textContent = 'Could not load voter data.';
+  }
+}
+
+function renderAdmin(voters) {
+  const note = document.getElementById('admin-notice');
+  note.textContent = voters.length
+    ? `${voters.length} traveler${voters.length !== 1 ? 's' : ''} have submitted ratings.`
+    : 'No votes recorded yet. Have travelers enter their name to get started.';
+
+  // For the admin we need full data to show dest/exp counts — fetch from allResults or re-fetch
+  fetch('/api/results').then(r => r.json()).then(results => {
+    document.getElementById('admin-voter-list').innerHTML = results.map(r => {
+      const d = Object.keys(r.destRatings || {}).length;
+      const e = Object.keys(r.expRatings  || {}).length;
+      const bothDone    = d > 0 && e > 0;
+      const statusClass = bothDone ? 'status-done-both' : d > 0 ? 'status-done-dest' : e > 0 ? 'status-done-exp' : 'status-pending';
+      const statusText  = bothDone ? `✓ Both sections (${d} dest, ${e} exp)` : d > 0 ? `Destinations only (${d})` : e > 0 ? `Experiences only (${e})` : 'Pending';
+      const date        = new Date(r.submittedAt).toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+      return `<div class="voter-row">
+        <div>
+          <div class="voter-row-name">${r.voterName}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">${date}</div>
+        </div>
+        <div class="voter-row-right">
+          <span class="voter-row-status ${statusClass}">${statusText}</span>
+          <button class="voter-row-btn" onclick="removeVoter('${r.voterName}')">Remove</button>
+        </div>
+      </div>`;
+    }).join('') || '<p style="color:var(--muted);font-size:13px;">No voters yet.</p>';
+  });
+}
+
+// The "Add voter" button in admin adds a blank placeholder entry
+// (the real submission happens when that person fills out the survey)
+function addVoterFromAdmin() {
+  const input = document.getElementById('add-voter-input');
+  const name  = input.value.trim();
+  if (!name) return;
+  // Pre-register with empty ratings so they show up in the admin list
+  fetch('/api/submit', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ voterName: name, destRatings: {}, expRatings: {} })
+  }).then(() => { input.value = ''; loadAndRenderAdmin(); });
+}
+
+async function removeVoter(name) {
+  // We don't have a dedicated delete-voter endpoint, so we reset and re-add everyone except this person
+  if (!confirm(`Remove ${name} and all their ratings?`)) return;
+  showLoading('Removing voter…');
+  try {
+    const res     = await fetch('/api/results');
+    const current = await res.json();
+    await fetch('/api/reset', { method: 'DELETE' });
+    for (const r of current) {
+      if (r.voterName === name) continue;
+      await fetch('/api/submit', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voterName: r.voterName, destRatings: r.destRatings, expRatings: r.expRatings })
+      });
+    }
+    loadAndRenderAdmin();
+  } catch(e) {
+    alert('Could not remove voter. Please try again.');
+  } finally {
+    hideLoading();
+  }
+}
+
+function confirmReset() {
+  document.getElementById('modal-title').textContent = 'Reset All Data?';
+  document.getElementById('modal-body').textContent  = 'This permanently deletes all voter ratings. Cannot be undone.';
+  document.getElementById('modal-confirm').onclick   = async () => {
+    closeModal();
+    showLoading('Resetting…');
+    try {
+      await fetch('/api/reset', { method: 'DELETE' });
+      loadAndRenderAdmin();
+    } catch(e) {
+      alert('Reset failed. Please try again.');
+    } finally {
+      hideLoading();
+    }
+  };
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target.id === 'modal-overlay') closeModal(); });
+</script>
+</body>
+</html>
